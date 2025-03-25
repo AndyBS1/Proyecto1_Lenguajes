@@ -31,9 +31,16 @@ void manejar_cliente(int cliente_sock) {
             send(cliente_sock, respuesta.c_str(), respuesta.size(), 0);
         } 
         else if (comando == "MENSAJE") {
-            std::string usuario = datos.substr(pos1 + 1, pos2 - pos1 - 1);
-            std::string mensaje = datos.substr(pos2 + 1);
-            std::cout << "[MENSAJE] " << usuario << ": " << mensaje << "\n";
+            // Datos que se reciben en el server
+            std::string usuario_origen = datos.substr(pos1 + 1, pos2 - pos1 - 1);
+            std::string usuario_destino = datos.substr(pos2 + 1, pos3 - pos2 - 1);
+            std::string mensaje = datos.substr(pos3 + 1);
+            
+            // Mensaje recibido
+            std::cout << "[MENSAJE] " 
+                      << "De: " << usuario_origen << " , "
+                      << "Para: " << usuario_destino << " -> "
+                      << mensaje << "\n";
         }
     }
 
