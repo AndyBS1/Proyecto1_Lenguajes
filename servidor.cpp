@@ -99,7 +99,7 @@ void manejar_registro(int cliente_sock) { //Funcion para registrar los usuarios
             std::cerr << "Intento de registro duplicado: " << usuario << "\n";
             send(cliente_sock, "ERROR|Usuario ya existe", 23, 0);
         } else {
-            usuarios[usuario] = {ip, puerto_asignado, contrasena};  // ⚠️ usa puerto_asignado
+            usuarios[usuario] = {ip, puerto_asignado, contrasena};  
             std::cout << "Usuario registrado: " << usuario << " IP: " << ip << " Puerto: " << puerto_asignado << "\n";
             
             std::string respuesta = "OK|Registro exitoso|PUERTO|" + std::to_string(puerto_asignado);
