@@ -94,6 +94,16 @@ void manejar_registro(int cliente_sock) { //Funcion para registrar los usuarios
             guardar_usuarios();
         }
     }
+    else if (comando == "LOGIN") {
+        auto it = usuarios.find(usuario);
+        if (it != usuarios.end() && it->second.contrasena == contrasena) {
+            std::cout << "Inicio de sesión exitoso para usuario: " << usuario << "\n";
+            send(cliente_sock, "OK|Inicio de sesión exitoso", 28, 0);
+        } else {
+            std::cerr << "Fallo en inicio de sesión para usuario: " << usuario << "\n";
+            send(cliente_sock, "ERROR|Credenciales inválidas", 29, 0);
+        }
+    }    
 
     close(cliente_sock);
 }

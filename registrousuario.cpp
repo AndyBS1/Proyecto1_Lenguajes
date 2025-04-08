@@ -61,7 +61,7 @@ int main() {
     std::cout << "Conectado al servidor (127.0.0.1:" << puerto << ")\n";
 
     //menu de opciones
-    std::cout << "Seleccione una opción:\n1. Registrar usuario\n2. Listar usuarios\nOpción: ";
+    std::cout << "Seleccione una opción:\n1. Registrar usuario\n2. Listar usuarios\n3. Iniciar sesión\nOpción: ";
     int opcion;
     std::cin >> opcion;
    
@@ -93,6 +93,20 @@ int main() {
             std::cerr << "Error recibiendo la lista de usuarios\n";
         }
     }
+    else if (opcion == 3) {
+        std::string usuario, contrasena;
+        std::cout << "Nombre de usuario: ";
+        std::cin >> usuario;
+        std::cout << "Contraseña: ";
+        std::cin >> contrasena;
+    
+        std::string login = "LOGIN|" + usuario + "|127.0.0.1|" + std::to_string(puerto) + "|" + contrasena;
+        send(sock, login.c_str(), login.size(), 0);
+    
+        char buffer[1024] = {0};
+        read(sock, buffer, sizeof(buffer)-1);
+        std::cout << "Respuesta del servidor: " << buffer << "\n";
+    }    
 
     close(sock);
     return 0;
