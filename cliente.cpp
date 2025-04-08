@@ -88,12 +88,11 @@ int main(int argc, char *argv[]) {
         wait(NULL);  
     }
 
-    // Iniciar la aplicación Qt después de la lógica de red
-    QApplication app(argc, argv);  // Crea la aplicación Qt
+    QApplication app(argc, argv);
 
-    // Aquí se muestra la ventana de la interfaz gráfica con un nombre de usuario de ejemplo
-    InterfazMensajes ventana(QString::fromStdString(usuario_destino));  // Pasamos el destinatario
-    ventana.show();  // Muestra la ventana en pantalla
+    // Pasar origen y destino a la interfaz
+    InterfazMensajes ventana(QString::fromStdString(usuario_origen), QString::fromStdString(usuario_destino));
+    ventana.show();
 
-    return app.exec();  // Ejecuta la aplicación Qt
+    return app.exec();
 }

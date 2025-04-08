@@ -1,14 +1,16 @@
 #include "VentanaMensajes.h"
+#include "enviarmensaje.h"
 #include <QHBoxLayout>
 
-InterfazMensajes::InterfazMensajes(QString usuario, QWidget *parent) : QWidget(parent) {
+InterfazMensajes::InterfazMensajes(QString origen, QString destino, QWidget *parent) 
+    : QWidget(parent), usuarioOrigen(origen), usuarioDestino(destino) {
     setWindowTitle("Mensajes");
     resize(400, 600);
 
     QVBoxLayout *mainLayout = new QVBoxLayout(this);
 
     // Parte de arriba
-    usuarioLabel = new QLabel("Chat: " + usuario);
+    usuarioLabel = new QLabel("Chat: " + destino);
     usuarioLabel->setAlignment(Qt::AlignCenter);
     usuarioLabel->setStyleSheet("font-size: 18px; font-weight: bold; padding: 10px;");
 
@@ -42,6 +44,8 @@ void InterfazMensajes::enviarMensaje() {
     if (!mensaje.isEmpty()) {
         agregarMensaje(mensaje, true);
         mensajeInput->clear();
+
+        enviar_mensaje(usuarioOrigen.toStdString(), usuarioDestino.toStdString(), mensaje.toStdString());
     }
 }
 

@@ -407,7 +407,8 @@ cliente.o: cliente.cpp enviarmensaje.h \
 		VentanaMensajes.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o cliente.o cliente.cpp
 
-VentanaMensajes.o: VentanaMensajes.cpp VentanaMensajes.h
+VentanaMensajes.o: VentanaMensajes.cpp VentanaMensajes.h \
+		enviarmensaje.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o VentanaMensajes.o VentanaMensajes.cpp
 
 enviarmensaje.o: enviarmensaje.cpp 
