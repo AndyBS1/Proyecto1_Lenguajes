@@ -72,7 +72,7 @@ int main() {
         std::cout << "Contraseña: ";
         std::cin >> contrasena;
 
-        std::string registro = "REGISTRO|" + usuario + "|127.0.0.1|" + std::to_string(puerto) + "|" + contrasena;
+        std::string registro = "REGISTRO|" + usuario + "|127.0.0.1|" + contrasena;
         send(sock, registro.c_str(), registro.size(), 0);
 
         char buffer[1024] = {0};
