@@ -119,18 +119,56 @@ void manejar_cliente(int cliente_sock) { // Manejar las solicitudes de los clien
             send(cliente_sock, "ERROR|Credenciales inválidas", 29, 0);
         }
     }
-    // Para el mensaje
     else if (comando == "MENSAJE") {
-        std::string usuario_destino = usuario;  // Usuario origen (el que envía el mensaje)
-        std::string mensaje = contrasena;  // El mensaje es lo que está en la contraseña del cliente
-
-        // Buscar el usuario destino
+        // Extraemos el nombre del usuario origen
+        std::string usuario_origen = usuario;  // Usuario origen (el que envía el mensaje)
+    
+        // Extraemos el nombre del usuario destino correctamente
+        std::string usuario_destino = datos.substr(pos2 + 1, pos3 - pos2 - 1);  // Extraemos el usuario destino
+        std::cout << "Usuario destino: " << usuario_destino << std::endl; // Depuración: Verificar el usuario destino
+    
+        // El mensaje es todo lo que está después del último "|"
+        std::string mensaje = datos.substr(pos3 + 1);
+        std::cout << "Mensaje: " << mensaje << std::endl; // Depuración: Verificar el mensaje
+    
+        // Buscar el usuario destino en el mapa
         auto it = usuarios.find(usuario_destino);
         if (it != usuarios.end()) {
-            // Si el usuario destino existe, se puede reenviar el mensaje
-            std::string respuesta = "MENSAJE|De: " + usuario + "|A: " + usuario_destino + "|Mensaje: " + mensaje;
-            send(cliente_sock, respuesta.c_str(), respuesta.size(), 0);
-            std::cout << "Mensaje enviado de: " << usuario << " a: " << usuario_destino << " -> " << mensaje << "\n";
+            // Si el usuario destino existe, obtener la IP y el puerto asignado
+            std::string ip_destino = it->second.ip;
+            int puerto_destino = it->second.puerto;
+    
+            std::cout << "Conectando al destinatario: " << usuario_destino << " IP: " << ip_destino << " Puerto: " << puerto_destino << std::endl;
+    
+            // Crear un socket para conectarse al puerto del usuario destino
+            int sock_destino = socket(AF_INET, SOCK_STREAM, 0);
+            if (sock_destino < 0) {
+                std::cerr << "Error creando el socket para el destino\n";
+                return;
+            }
+    
+            sockaddr_in direccion_destino;
+            direccion_destino.sin_family = AF_INET;
+            direccion_destino.sin_port = htons(puerto_destino);
+            inet_pton(AF_INET, ip_destino.c_str(), &direccion_destino.sin_addr);
+    
+            // Intentar conectarse al puerto del usuario destino
+            if (connect(sock_destino, (struct sockaddr *)&direccion_destino, sizeof(direccion_destino)) < 0) {
+                std::cerr << "Error al conectar con el usuario destino en puerto " << puerto_destino << std::endl;
+                close(sock_destino);
+                send(cliente_sock, "ERROR|No se pudo conectar al usuario destino", 42, 0);
+                return;
+            }
+    
+            // Construir el mensaje final y enviarlo
+            std::string mensaje_final = "MENSAJE|De: " + usuario_origen + "|A: " + usuario_destino + "|Mensaje: " + mensaje;
+            std::cout << "Mensaje final a enviar: " << mensaje_final << std::endl; // Depuración: Verificar el mensaje final
+            send(sock_destino, mensaje_final.c_str(), mensaje_final.size(), 0);
+    
+            std::cout << "Mensaje enviado de: " << usuario_origen << " a: " << usuario_destino << " -> " << mensaje << "\n";
+    
+            // Cerrar el socket después de enviar el mensaje
+            close(sock_destino); 
         } else {
             // Si no se encuentra el usuario destino
             send(cliente_sock, "ERROR|Usuario destino no encontrado", 34, 0);

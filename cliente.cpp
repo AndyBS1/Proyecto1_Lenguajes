@@ -8,6 +8,8 @@
 #include <sys/wait.h>
 #include "enviarmensaje.h"
 #include "recibirmensaje.h"
+#include <QApplication>
+#include "VentanaMensajes.h"
 
 bool autenticar_usuario(const std::string& usuario, const std::string& contrasena, int &puerto) {
     std::ifstream archivo("usuarios.txt");
@@ -32,7 +34,7 @@ bool autenticar_usuario(const std::string& usuario, const std::string& contrasen
     return false;
 }
 
-int main() {
+int main(int argc, char *argv[]) {
     std::string usuario_origen;
     std::string contrasena;
 
@@ -86,6 +88,12 @@ int main() {
         wait(NULL);  
     }
 
-    close(sock);
-    return 0;
+    // Iniciar la aplicación Qt después de la lógica de red
+    QApplication app(argc, argv);  // Crea la aplicación Qt
+
+    // Aquí se muestra la ventana de la interfaz gráfica con un nombre de usuario de ejemplo
+    InterfazMensajes ventana(QString::fromStdString(usuario_destino));  // Pasamos el destinatario
+    ventana.show();  // Muestra la ventana en pantalla
+
+    return app.exec();  // Ejecuta la aplicación Qt
 }
