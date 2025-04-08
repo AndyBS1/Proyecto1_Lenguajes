@@ -1,5 +1,7 @@
 #include <iostream>
+#include <fstream>
 #include <string>
+#include <sstream>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <unistd.h>
@@ -7,17 +9,48 @@
 #include "enviarmensaje.h"
 #include "recibirmensaje.h"
 
+bool autenticar_usuario(const std::string& usuario, const std::string& contrasena) {
+    std::ifstream archivo("usuarios.txt");
+    if (!archivo.is_open()) {
+        std::cerr << "No se pudo abrir usuarios.txt\n";
+        return false;
+    }
+
+    std::string linea;
+    while (std::getline(archivo, linea)) {
+        std::istringstream iss(linea);
+        std::string usuario_archivo, ip, pass;
+        int puerto;
+        if (iss >> usuario_archivo >> ip >> puerto >> pass) {
+            if (usuario_archivo == usuario && pass == contrasena) {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
 int main() {
     std::string usuario_origen;
-    std::cout << "De: ";
+    std::string contrasena;
+
+    std::cout << "Usuario: ";
     std::cin >> usuario_origen;
+    std::cout << "Contraseña: ";
+    std::cin >> contrasena;
     std::cin.ignore();
+
+    if (!autenticar_usuario(usuario_origen, contrasena)) {
+        std::cerr << "Credenciales incorrectas.\n";
+        return 1;
+    }
 
     std::string usuario_destino;
     std::cout << "Para: ";
     std::cin >> usuario_destino;
     std::cin.ignore(); // Se limpia el buffer
-    
+
     std::string mensaje;
     std::cout << "Mensaje: ";
     std::getline(std::cin, mensaje);

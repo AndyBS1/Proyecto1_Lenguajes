@@ -19,7 +19,7 @@ const std::string ARCHIVO_USUARIOS = "usuarios.txt";  //Archivo donde se almacen
 void cargar_usuarios() { //Funcion para mostrar la lista de los usuarios que se han registrado en el servidor
     std::ifstream archivo(ARCHIVO_USUARIOS);
     if (!archivo.is_open()) return; // Si no logra abrir el archivo se sale de la funcion
-    
+
     std::string usuario, ip, contrasena;
     int puerto;
     while (archivo >> usuario >> ip >> puerto >> contrasena) {
@@ -36,11 +36,11 @@ void guardar_usuarios() {  // funcion para guardar los usuarios en el archivo tx
     archivo.close();
 }
 
-void manejar_registro(int cliente_sock) { //Funcion para registrar los usuarios
+void manejar_cliente(int cliente_sock) { // manejar las solicitudes de los clientes
     char buffer[1024] = {0};  
     ssize_t bytes_leidos = read(cliente_sock, buffer, sizeof(buffer)-1);
     if (bytes_leidos <= 0) {  // Si no lee nada o la conexion con el server esta cerrada, cierra el socket
-        std::cerr << "Error leyendo datos o conexión cerrada\n";
+        std::cerr << "Error leyendo datos o conexi\xC3\xB3n cerrada\n";
         close(cliente_sock);
         return;
     }
@@ -65,25 +65,27 @@ void manejar_registro(int cliente_sock) { //Funcion para registrar los usuarios
         return;
     }
 
-    // Para el registro
+    // Extraemos los campos del mensaje
     size_t pos1 = datos.find("|");
     size_t pos2 = datos.find("|", pos1+1);
     size_t pos3 = datos.find("|", pos2+1);
     size_t pos4 = datos.find("|", pos3+1);
 
-    if (pos1 == std::string::npos || pos2 == std::string::npos || pos3 == std::string::npos || pos4 == std::string::npos) {
-        std::cerr << "Error: Formato de mensaje inválido\n";
-        close(cliente_sock);
-        return;
-    }    
-
     std::string comando = datos.substr(0, pos1);  // extrae el comando
-    std::string usuario = datos.substr(pos1+1, pos2-pos1-1); // extrae el nombre
-    std::string ip = datos.substr(pos2+1, pos3-pos2-1); // extrae la ip
-    int puerto = std::stoi(datos.substr(pos3+1, pos4-pos3-1));  // extrae el puerto
-    std::string contrasena = datos.substr(pos4+1); // extrae la contraseña
 
+    // Para el registro
     if (comando == "REGISTRO") {
+        if (pos4 == std::string::npos) {
+            std::cerr << "Error: Formato de mensaje inv\xC3\xA1lido\n";
+            close(cliente_sock);
+            return;
+        }
+
+        std::string usuario = datos.substr(pos1+1, pos2-pos1-1); // extrae el nombre
+        std::string ip = datos.substr(pos2+1, pos3-pos2-1); // extrae la ip
+        int puerto = std::stoi(datos.substr(pos3+1, pos4-pos3-1));  // extrae el puerto
+        std::string contrasena = datos.substr(pos4+1); // extrae la contrase\xC3\xB1a
+
         if (usuarios.find(usuario) != usuarios.end()) { // validacion para que no hayan duplicados
             std::cerr << "Intento de registro duplicado: " << usuario << "\n";
             send(cliente_sock, "ERROR|Usuario ya existe", 23, 0);
@@ -93,6 +95,20 @@ void manejar_registro(int cliente_sock) { //Funcion para registrar los usuarios
             send(cliente_sock, "OK|Registro exitoso", 19, 0);
             guardar_usuarios();
         }
+    }
+    // Para el mensaje
+    else if (comando == "MENSAJE") {
+        if (pos3 == std::string::npos) {
+            std::cerr << "Error: Formato de mensaje inv\xC3\xA1lido\n";
+            close(cliente_sock);
+            return;
+        }
+
+        std::string usuario_origen = datos.substr(pos1 + 1, pos2 - pos1 - 1);
+        std::string usuario_destino = datos.substr(pos2 + 1, pos3 - pos2 - 1);
+        std::string mensaje = datos.substr(pos3 + 1);
+
+        std::cout << "[MENSAJE] De: " << usuario_origen << " , Para: " << usuario_destino << " -> " << mensaje << "\n";
     }
 
     close(cliente_sock);
@@ -120,7 +136,10 @@ int main() {
     while(true) {
         int cliente_sock = accept(server_fd, nullptr, nullptr);
         if (cliente_sock >= 0) {
-            manejar_registro(cliente_sock); // manejar las solicitudes del usuario
+            if (fork() == 0) { // se crea un proceso hijo para atender al cliente
+                manejar_cliente(cliente_sock); // manejar las solicitudes del usuario
+                exit(0);
+            }
         }
     }
 
