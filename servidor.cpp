@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <cstring>
 #include <signal.h>
+#include <set>
 
 struct Usuario {
     std::string ip; //Direccion ip
@@ -69,49 +70,62 @@ void manejar_cliente(int cliente_sock) { // manejar las solicitudes de los clien
     size_t pos1 = datos.find("|");
     size_t pos2 = datos.find("|", pos1+1);
     size_t pos3 = datos.find("|", pos2+1);
-    size_t pos4 = datos.find("|", pos3+1);
 
-    std::string comando = datos.substr(0, pos1);  // extrae el comando
+    if (pos1 == std::string::npos || pos2 == std::string::npos || pos3 == std::string::npos){
+        std::cerr << "Error: Formato de mensaje inválido\n";
+        close(cliente_sock);
+        return;
+    }    
+
+    std::string comando = datos.substr(0, pos1);
+    std::string usuario = datos.substr(pos1+1, pos2-pos1-1);
+    std::string ip = datos.substr(pos2+1, pos3-pos2-1);
+    std::string contrasena = datos.substr(pos3+1);
+
+
+    int puerto_asignado = 5000; // Puerto inicial
+    std::set<int> puertos_ocupados;
+
+    for (const auto& [nombre, datos] : usuarios) {
+        puertos_ocupados.insert(datos.puerto);
+    }
+
+    while (puertos_ocupados.count(puerto_asignado)) {
+        puerto_asignado++;
+    }
 
     // Para el registro
     if (comando == "REGISTRO") {
-        if (pos4 == std::string::npos) {
-            std::cerr << "Error: Formato de mensaje inv\xC3\xA1lido\n";
-            close(cliente_sock);
-            return;
-        }
-
-        std::string usuario = datos.substr(pos1+1, pos2-pos1-1); // extrae el nombre
-        std::string ip = datos.substr(pos2+1, pos3-pos2-1); // extrae la ip
-        int puerto = std::stoi(datos.substr(pos3+1, pos4-pos3-1));  // extrae el puerto
-        std::string contrasena = datos.substr(pos4+1); // extrae la contrase\xC3\xB1a
-
-        if (usuarios.find(usuario) != usuarios.end()) { // validacion para que no hayan duplicados
+        if (usuarios.find(usuario) != usuarios.end()) {
             std::cerr << "Intento de registro duplicado: " << usuario << "\n";
             send(cliente_sock, "ERROR|Usuario ya existe", 23, 0);
         } else {
-            usuarios[usuario] = {ip, puerto, contrasena}; // registra el usuario y lo guarda en el txt
-            std::cout << "Usuario registrado: " << usuario << " IP: " << ip << " Puerto: " << puerto << "\n";
-            send(cliente_sock, "OK|Registro exitoso", 19, 0);
+            usuarios[usuario] = {ip, puerto_asignado, contrasena};  
+            std::cout << "Usuario registrado: " << usuario << " IP: " << ip << " Puerto: " << puerto_asignado << "\n";
+            
+            std::string respuesta = "OK|Registro exitoso|PUERTO|" + std::to_string(puerto_asignado);
+            send(cliente_sock, respuesta.c_str(), respuesta.size(), 0);
             guardar_usuarios();
         }
     }
-    // Para el mensaje
-    else if (comando == "MENSAJE") {
-        if (pos3 == std::string::npos) {
-            std::cerr << "Error: Formato de mensaje inv\xC3\xA1lido\n";
-            close(cliente_sock);
-            return;
+    else if (comando == "LOGIN") {
+        auto it = usuarios.find(usuario);
+        if (it != usuarios.end() && it->second.contrasena == contrasena) {
+            std::cout << "Inicio de sesión exitoso para usuario: " << usuario << "\n";
+            send(cliente_sock, "OK|Inicio de sesión exitoso", 28, 0);
+        } else {
+            std::size_t pos1 = datos.find("|");
+            size_t pos2 = datos.find("|", pos1+1);
+            size_t pos3 = datos.find("|", pos2+1);
+            size_t pos4 = datos.find("|", pos3+1);
+        
+            if (pos1 == std::string::npos || pos2 == std::string::npos || pos3 == std::string::npos || pos4 == std::string::npos) {std::cerr << "Fallo en inicio de sesión para usuario: " << usuario << "\n";
+            send(cliente_sock, "ERROR|Credenciales inválidas", 29, 0);
         }
-
-        std::string usuario_origen = datos.substr(pos1 + 1, pos2 - pos1 - 1);
-        std::string usuario_destino = datos.substr(pos2 + 1, pos3 - pos2 - 1);
-        std::string mensaje = datos.substr(pos3 + 1);
-
-        std::cout << "[MENSAJE] De: " << usuario_origen << " , Para: " << usuario_destino << " -> " << mensaje << "\n";
-    }
+    }    
 
     close(cliente_sock);
+}
 }
 
 int main() {
