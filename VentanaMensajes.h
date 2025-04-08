@@ -1,0 +1,30 @@
+#ifndef VENTANAMENSAJES_H
+#define VENTANAMENSAJES_H
+
+#include <QWidget>
+#include <QVBoxLayout>
+#include <QLabel>
+#include <QTextEdit>
+#include <QPushButton>
+#include <QScrollArea>
+
+class InterfazMensajes : public QWidget {
+    Q_OBJECT  
+
+public:
+    explicit InterfazMensajes(QString usuario, QWidget *parent = nullptr);
+
+private slots:
+    void enviarMensaje();
+
+private:
+    QLabel *usuarioLabel;
+    QTextEdit *mensajeInput;
+    QVBoxLayout *chatLayout;
+    QWidget *contenedorMensajes;
+    QVBoxLayout *layoutMensajes;
+
+    void agregarMensaje(QString mensaje, bool enviado);
+};
+
+#endif

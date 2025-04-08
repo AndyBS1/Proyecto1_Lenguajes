@@ -4,22 +4,10 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 
-int main() {
-    std::string usuario_origen;
-    std::cout << "De: ";
-    std::cin >> usuario_origen;
-    std::cin.ignore();
-
-    std::string usuario_destino;
-    std::cout << "Para: ";
-    std::cin >> usuario_destino;
-    std::cin.ignore(); // Se limpia el buffer
+// Función para enviar el mensaje
+void enviar_mensaje(const std::string& usuario_origen, const std::string& usuario_destino, const std::string& mensaje) {
     
-    std::string mensaje;
-    std::cout << "Mensaje: ";
-    std::getline(std::cin, mensaje);
-    
-    // Configuración de la conexión al servidor
+    // Configuración de la conexión al server
     int sock = socket(AF_INET, SOCK_STREAM, 0);
     sockaddr_in servidor_address;
     servidor_address.sin_family = AF_INET;
@@ -28,7 +16,7 @@ int main() {
     
     if (connect(sock, (struct sockaddr *)&servidor_address, sizeof(servidor_address)) < 0) {
         std::cerr << "Error al conectar con el servidor.\n";
-        return 1;
+        return;
     }
     
     // Formato del mensaje
@@ -40,5 +28,4 @@ int main() {
     std::cout << "Mensaje enviado al servidor.\n";
     
     close(sock);
-    return 0;
 }
