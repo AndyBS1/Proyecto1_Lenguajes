@@ -1,65 +1,60 @@
-#include <iostream> 
+#include <iostream>
+#include <string>
 #include <sys/socket.h>
-#include <arpa/inet.h>
+#include <netinet/in.h>
 #include <unistd.h>
+#include <cstring>
 
 void recibir_mensaje(int puerto) {
-    // Crear un socket para TCP
-    int sock = socket(AF_INET, SOCK_STREAM, 0);
-    if (sock < 0) {
-        std::cerr << "Error al crear el socket de recepción.\n";
+    int servidor_socket = socket(AF_INET, SOCK_STREAM, 0);
+    if (servidor_socket < 0) {
+        std::cerr << "Error al crear el socket.\n";
         return;
     }
 
-    sockaddr_in direccion_cliente;
-    direccion_cliente.sin_family = AF_INET;
-    direccion_cliente.sin_addr.s_addr = INADDR_ANY;
-    direccion_cliente.sin_port = htons(puerto);
+    sockaddr_in servidor_addr{};
+    servidor_addr.sin_family = AF_INET;
+    servidor_addr.sin_addr.s_addr = INADDR_ANY;
+    servidor_addr.sin_port = htons(puerto);
 
-    // Vincular el socket al puerto
-    if (bind(sock, (struct sockaddr *)&direccion_cliente, sizeof(direccion_cliente)) < 0) {
-        std::cerr << "Error al vincular el socket de recepción al puerto " << puerto << ".\n";
-        close(sock);
+    if (bind(servidor_socket, (struct sockaddr*)&servidor_addr, sizeof(servidor_addr)) < 0) {
+        std::cerr << "Error al enlazar el socket al puerto.\n";
+        close(servidor_socket);
         return;
     }
 
-    // Escuchar conexiones entrantes
-    if (listen(sock, 5) < 0) {
-        std::cerr << "Error al escuchar en el puerto " << puerto << ".\n";
-        close(sock);
+    if (listen(servidor_socket, 5) < 0) {
+        std::cerr << "Error al poner el socket en modo escucha.\n";
+        close(servidor_socket);
         return;
     }
 
-    std::cout << "Esperando conexión...\n";
+    std::cout << "Esperando conexiones entrantes en el puerto " << puerto << "...\n";
 
-    // Aceptar conexiones de clientes
-    int cliente_sock = accept(sock, nullptr, nullptr);
-    if (cliente_sock < 0) {
-        std::cerr << "Error al aceptar la conexión.\n";
-        close(sock);
-        return;
-    }
-
-    std::cout << "Conexión aceptada. Esperando mensajes...\n";
-
-    char buffer[1024];
     while (true) {
-        ssize_t bytes_recibidos = recv(cliente_sock, buffer, sizeof(buffer) - 1, 0);
-        if (bytes_recibidos < 0) {
-            std::cerr << "Error al recibir mensaje.\n";
-            break;
+        sockaddr_in cliente_addr{};
+        socklen_t cliente_len = sizeof(cliente_addr);
+
+        int cliente_socket = accept(servidor_socket, (struct sockaddr*)&cliente_addr, &cliente_len);
+        if (cliente_socket < 0) {
+            std::cerr << "Error al aceptar la conexión.\n";
+            continue;
         }
 
-        if (bytes_recibidos == 0) {
-            std::cout << "Conexión cerrada por el cliente.\n";
-            break;  // La conexión se ha cerrado
+        std::cout << "Conexión aceptada. Esperando mensajes...\n";
+
+        char buffer[1024];
+        ssize_t bytes_recibidos;
+
+        while ((bytes_recibidos = recv(cliente_socket, buffer, sizeof(buffer) - 1, 0)) > 0) {
+            buffer[bytes_recibidos] = '\0';
+            std::string mensaje(buffer);
+            std::cout << "Mensaje recibido: " << mensaje << std::endl;
         }
 
-        buffer[bytes_recibidos] = '\0';  // Aseguramos que el mensaje se termine en null
-        std::cout << "Mensaje recibido: " << buffer << std::endl;
+        std::cout << "Conexión cerrada por el cliente.\n";
+        close(cliente_socket);
     }
 
-    // Cerrar los sockets correctamente
-    close(cliente_sock);
-    close(sock);
+    close(servidor_socket); 
 }

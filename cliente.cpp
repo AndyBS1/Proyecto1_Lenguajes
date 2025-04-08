@@ -57,10 +57,6 @@ int main(int argc, char *argv[]) {
     std::cin >> usuario_destino;
     std::cin.ignore(); // Se limpia el buffer
 
-    std::string mensaje;
-    std::cout << "Mensaje: ";
-    std::getline(std::cin, mensaje);
-
     // Configuración de la conexión al servidor (Siempre al puerto 8080)
     int sock = socket(AF_INET, SOCK_STREAM, 0);
     sockaddr_in servidor_address;
@@ -84,15 +80,13 @@ int main(int argc, char *argv[]) {
     if (pid == 0) {  // Proceso hijo: recibe los mensajes
         recibir_mensaje(puerto_asignado);  // Escuchar en el puerto asignado (por ejemplo, 5000)
     } else {  // Proceso padre: enviar mensaje
-        enviar_mensaje(usuario_origen, usuario_destino, mensaje); 
-        wait(NULL);  
+        QApplication app(argc, argv);
+
+        // Pasar origen y destino a la interfaz
+        InterfazMensajes ventana(QString::fromStdString(usuario_origen), QString::fromStdString(usuario_destino));
+        ventana.show();
+
+        return app.exec(); 
     }
 
-    QApplication app(argc, argv);
-
-    // Pasar origen y destino a la interfaz
-    InterfazMensajes ventana(QString::fromStdString(usuario_origen), QString::fromStdString(usuario_destino));
-    ventana.show();
-
-    return app.exec();
 }
