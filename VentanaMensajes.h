@@ -12,7 +12,7 @@ class InterfazMensajes : public QWidget {
     Q_OBJECT  
 
 public:
-    explicit InterfazMensajes(QString usuario, QWidget *parent = nullptr);
+explicit InterfazMensajes(QString usuarioOrigen, QString usuarioDestino, QWidget *parent = nullptr);
 
 private slots:
     void enviarMensaje();
@@ -23,6 +23,8 @@ private:
     QVBoxLayout *chatLayout;
     QWidget *contenedorMensajes;
     QVBoxLayout *layoutMensajes;
+    QString usuarioOrigen;
+    QString usuarioDestino;
 
     void agregarMensaje(QString mensaje, bool enviado);
 };
