@@ -60,7 +60,7 @@ int main() {
             break;
         }
 
-        // 🧠 CADA VEZ CREAMOS EL SOCKET
+        // CADA VEZ CREAMOS EL SOCKET
         int sock = socket(AF_INET, SOCK_STREAM, 0);
         if (sock < 0) {
             std::cerr << "Error creando el socket\n";
@@ -120,7 +120,7 @@ int main() {
             read(sock, buffer, sizeof(buffer)-1);
             std::cout << "Respuesta del servidor: " << buffer << "\n";
         }
-        close(sock); // 🔒 CERRAR SIEMPRE EL SOCKET DESPUÉS DE CADA OPERACIÓN
+        close(sock); // CERRAR SIEMPRE EL SOCKET DESPUÉS DE CADA OPERACIÓN
     }
 
     return 0;
