@@ -7,26 +7,34 @@
 #include <QTextEdit>
 #include <QPushButton>
 #include <QScrollArea>
+#include <QThread>
+
+class HiloReceptor;
 
 class InterfazMensajes : public QWidget {
-    Q_OBJECT  
+    Q_OBJECT
 
 public:
-explicit InterfazMensajes(QString usuarioOrigen, QString usuarioDestino, QWidget *parent = nullptr);
+    InterfazMensajes(QString usuarioOrigen, QString usuarioDestino, int puertoEscucha, QWidget *parent = nullptr);
+    ~InterfazMensajes();
 
 private slots:
     void enviarMensaje();
+    void mostrarMensaje(QString mensaje);
 
 private:
     QLabel *usuarioLabel;
     QTextEdit *mensajeInput;
-    QVBoxLayout *chatLayout;
-    QWidget *contenedorMensajes;
     QVBoxLayout *layoutMensajes;
+    QWidget *contenedorMensajes;
     QString usuarioOrigen;
     QString usuarioDestino;
+    QScrollArea *scrollArea;
+    HiloReceptor *hiloReceptor;
 
     void agregarMensaje(QString mensaje, bool enviado);
+    QString extraerContenidoMensaje(const QString& mensajeCompleto);
+    
 };
 
 #endif

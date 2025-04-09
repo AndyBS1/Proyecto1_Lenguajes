@@ -8,9 +8,13 @@ SOURCES += \
     cliente.cpp \
     VentanaMensajes.cpp \
     enviarmensaje.cpp \
-    recibirmensaje.cpp
+    recibirmensaje.cpp \
+    hiloreceptor.cpp
 
 HEADERS += \
     VentanaMensajes.h \
     enviarmensaje.h \
-    recibirmensaje.h
+    recibirmensaje.h \
+    hiloreceptor.h
+
+unix:LIBS += -pthread

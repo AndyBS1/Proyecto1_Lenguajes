@@ -78,12 +78,16 @@ int main(int argc, char *argv[]) {
     }
 
     if (pid == 0) {  // Proceso hijo: recibe los mensajes
-        recibir_mensaje(puerto_asignado);  // Escuchar en el puerto asignado (por ejemplo, 5000)
+        //recibir_mensaje(puerto_asignado);  // Escuchar en el puerto asignado (por ejemplo, 5000)
     } else {  // Proceso padre: enviar mensaje
         QApplication app(argc, argv);
 
         // Pasar origen y destino a la interfaz
-        InterfazMensajes ventana(QString::fromStdString(usuario_origen), QString::fromStdString(usuario_destino));
+        InterfazMensajes ventana(
+            QString::fromStdString(usuario_origen),
+            QString::fromStdString(usuario_destino),
+            puerto_asignado
+        );
         ventana.show();
 
         return app.exec(); 
