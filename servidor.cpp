@@ -38,6 +38,7 @@ void guardar_usuarios() {  // Funcion para guardar los usuarios en el archivo tx
 }
 
 void manejar_cliente(int cliente_sock) { // Manejar las solicitudes de los clientes
+    cargar_usuarios();
     char buffer[1024] = {0};  
     ssize_t bytes_leidos = read(cliente_sock, buffer, sizeof(buffer)-1);
     if (bytes_leidos <= 0) {  // Si no lee nada o la conexion con el server esta cerrada, cierra el socket
@@ -49,7 +50,6 @@ void manejar_cliente(int cliente_sock) { // Manejar las solicitudes de los clien
 
     std::string datos(buffer);  
     std::cout << "Mensaje recibido: " << datos << std::endl; // Para verificar que las cosas lleguen al server
-
     // Para listar los usuarios que hay registrados
     if (datos == "LISTAR|") {
         std::string respuesta = "USUARIOS";
@@ -99,6 +99,7 @@ void manejar_cliente(int cliente_sock) { // Manejar las solicitudes de los clien
         if (usuarios.find(usuario) != usuarios.end()) {
             std::cerr << "Intento de registro duplicado: " << usuario << "\n";
             send(cliente_sock, "ERROR|Usuario ya existe", 23, 0);
+            close(cliente_sock);
         } else {
             usuarios[usuario] = {ip, puerto_asignado, contrasena};  
             std::cout << "Usuario registrado: " << usuario << " IP: " << ip << " Puerto: " << puerto_asignado << "\n";
@@ -106,19 +107,31 @@ void manejar_cliente(int cliente_sock) { // Manejar las solicitudes de los clien
             std::string respuesta = "OK|Registro exitoso|PUERTO|" + std::to_string(puerto_asignado);
             send(cliente_sock, respuesta.c_str(), respuesta.size(), 0);
             guardar_usuarios();
+            close(cliente_sock);
         }
     }
     // Para el login
     else if (comando == "LOGIN") {
+        cargar_usuarios();
+        std::cout << "Intentando login: " << usuario << " con contraseña: " << contrasena << "\n";
+    
         auto it = usuarios.find(usuario);
-        if (it != usuarios.end() && it->second.contrasena == contrasena) {
-            std::cout << "Inicio de sesión exitoso para usuario: " << usuario << "\n";
-            send(cliente_sock, "OK|Inicio de sesión exitoso", 28, 0);
+        if (it != usuarios.end()) {
+            std::cout << "Usuario encontrado. Contraseña esperada: " << it->second.contrasena << "\n";
+    
+            if (it->second.contrasena == contrasena) {
+                std::cout << "Inicio de sesión exitoso para usuario: " << usuario << "\n";
+                send(cliente_sock, "OK|Inicio de sesión exitoso", 28, 0);
+            } else {
+                std::cerr << "Contraseña incorrecta\n";
+                send(cliente_sock, "ERROR|Credenciales inválidas", 29, 0);
+            }
         } else {
-            std::cerr << "Fallo en inicio de sesión para usuario: " << usuario << "\n";
+            std::cerr << "Usuario no encontrado\n";
             send(cliente_sock, "ERROR|Credenciales inválidas", 29, 0);
         }
     }
+    
     else if (comando == "MENSAJE") {
         // Extraemos el nombre del usuario origen
         std::string usuario_origen = usuario;  // Usuario origen (el que envía el mensaje)
