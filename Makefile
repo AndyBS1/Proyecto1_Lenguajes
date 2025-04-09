@@ -40,7 +40,7 @@ DISTNAME      = Cliente1.0.0
 DISTDIR = /home/andyb/P1_lenguajes/Proyecto1_Lenguajes/.tmp/Cliente1.0.0
 LINK          = g++
 LFLAGS        = -Wl,-O1
-LIBS          = $(SUBLIBS) /usr/lib/x86_64-linux-gnu/libQt5Widgets.so /usr/lib/x86_64-linux-gnu/libQt5Gui.so /usr/lib/x86_64-linux-gnu/libQt5Core.so -lGL -lpthread   
+LIBS          = $(SUBLIBS) -pthread /usr/lib/x86_64-linux-gnu/libQt5Widgets.so /usr/lib/x86_64-linux-gnu/libQt5Gui.so /usr/lib/x86_64-linux-gnu/libQt5Core.so -lGL -lpthread   
 AR            = ar cqs
 RANLIB        = 
 SED           = sed
@@ -55,12 +55,16 @@ OBJECTS_DIR   = ./
 SOURCES       = cliente.cpp \
 		VentanaMensajes.cpp \
 		enviarmensaje.cpp \
-		recibirmensaje.cpp moc_VentanaMensajes.cpp
+		recibirmensaje.cpp \
+		HiloReceptor.cpp moc_VentanaMensajes.cpp \
+		moc_HiloReceptor.cpp
 OBJECTS       = cliente.o \
 		VentanaMensajes.o \
 		enviarmensaje.o \
 		recibirmensaje.o \
-		moc_VentanaMensajes.o
+		HiloReceptor.o \
+		moc_VentanaMensajes.o \
+		moc_HiloReceptor.o
 DIST          = /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/common/unix.conf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/common/linux.conf \
@@ -146,10 +150,12 @@ DIST          = /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/lex.prf \
 		cliente.pro VentanaMensajes.h \
 		enviarmensaje.h \
-		recibirmensaje.h cliente.cpp \
+		recibirmensaje.h \
+		HiloReceptor.h cliente.cpp \
 		VentanaMensajes.cpp \
 		enviarmensaje.cpp \
-		recibirmensaje.cpp
+		recibirmensaje.cpp \
+		HiloReceptor.cpp
 QMAKE_TARGET  = Cliente
 DESTDIR       = 
 TARGET        = Cliente
@@ -345,8 +351,8 @@ distdir: FORCE
 	@test -d $(DISTDIR) || mkdir -p $(DISTDIR)
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
 	$(COPY_FILE) --parents /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/data/dummy.cpp $(DISTDIR)/
-	$(COPY_FILE) --parents VentanaMensajes.h enviarmensaje.h recibirmensaje.h $(DISTDIR)/
-	$(COPY_FILE) --parents cliente.cpp VentanaMensajes.cpp enviarmensaje.cpp recibirmensaje.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents VentanaMensajes.h enviarmensaje.h recibirmensaje.h HiloReceptor.h $(DISTDIR)/
+	$(COPY_FILE) --parents cliente.cpp VentanaMensajes.cpp enviarmensaje.cpp recibirmensaje.cpp HiloReceptor.cpp $(DISTDIR)/
 
 
 clean: compiler_clean 
@@ -378,13 +384,18 @@ compiler_moc_predefs_clean:
 moc_predefs.h: /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/data/dummy.cpp
 	g++ -pipe -O2 -Wall -Wextra -dM -E -o moc_predefs.h /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/data/dummy.cpp
 
-compiler_moc_header_make_all: moc_VentanaMensajes.cpp
+compiler_moc_header_make_all: moc_VentanaMensajes.cpp moc_HiloReceptor.cpp
 compiler_moc_header_clean:
-	-$(DEL_FILE) moc_VentanaMensajes.cpp
+	-$(DEL_FILE) moc_VentanaMensajes.cpp moc_HiloReceptor.cpp
 moc_VentanaMensajes.cpp: VentanaMensajes.h \
 		moc_predefs.h \
 		/usr/lib/qt5/bin/moc
 	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/andyb/P1_lenguajes/Proyecto1_Lenguajes/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/andyb/P1_lenguajes/Proyecto1_Lenguajes -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include VentanaMensajes.h -o moc_VentanaMensajes.cpp
+
+moc_HiloReceptor.cpp: HiloReceptor.h \
+		moc_predefs.h \
+		/usr/lib/qt5/bin/moc
+	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/andyb/P1_lenguajes/Proyecto1_Lenguajes/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/andyb/P1_lenguajes/Proyecto1_Lenguajes -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include HiloReceptor.h -o moc_HiloReceptor.cpp
 
 compiler_moc_objc_header_make_all:
 compiler_moc_objc_header_clean:
@@ -408,7 +419,8 @@ cliente.o: cliente.cpp enviarmensaje.h \
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o cliente.o cliente.cpp
 
 VentanaMensajes.o: VentanaMensajes.cpp VentanaMensajes.h \
-		enviarmensaje.h
+		enviarmensaje.h \
+		HiloReceptor.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o VentanaMensajes.o VentanaMensajes.cpp
 
 enviarmensaje.o: enviarmensaje.cpp 
@@ -417,8 +429,14 @@ enviarmensaje.o: enviarmensaje.cpp
 recibirmensaje.o: recibirmensaje.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o recibirmensaje.o recibirmensaje.cpp
 
+HiloReceptor.o: HiloReceptor.cpp HiloReceptor.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o HiloReceptor.o HiloReceptor.cpp
+
 moc_VentanaMensajes.o: moc_VentanaMensajes.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_VentanaMensajes.o moc_VentanaMensajes.cpp
+
+moc_HiloReceptor.o: moc_HiloReceptor.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_HiloReceptor.o moc_HiloReceptor.cpp
 
 ####### Install
 
